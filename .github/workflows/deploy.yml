@@ -1,0 +1,60 @@
+# GitHub Actions workflow to build a Docker image, push to Artifact Registry,
+# and deploy to Cloud Run whenever code is pushed to the `main` branch.
+
+name: Deploy FastAPI to Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  # Replace these values in the repository secrets or set them here directly.
+  REGION: asia-southeast2
+  REPO_NAME: jsr-chatbot
+  SERVICE_NAME: fastapi-chatbot
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud using service account
+        uses: google-github-actions/auth@v2
+        with:
+          # Service account JSON should be stored in GitHub secret named GCP_SA_KEY
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker to use Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build Docker image
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest
+          docker build -t "$IMAGE" .
+
+      - name: Push Docker image to Artifact Registry
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest
+          docker push "$IMAGE"
+
+      - name: Deploy to Cloud Run
+        run: |
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image "$IMAGE" \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated
+
+      - name: Output deployed service URL
+        run: |
+          gcloud run services describe ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --format='value(status.url)'
