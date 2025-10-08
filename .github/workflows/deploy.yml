@@ -29,7 +29,7 @@ jobs:
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+            project_id: ${{ secrets.GCP_PROJECT_ID || 'jsr-chatbot' }}
 
       - name: Configure Docker to use Artifact Registry
         run: |
@@ -37,8 +37,9 @@ jobs:
 
       - name: Build Docker image
         run: |
-          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest
-          docker build -t "$IMAGE" .
+            PROJECT_ID=${{ secrets.GCP_PROJECT_ID || 'jsr-chatbot' }}
+            IMAGE=${{ env.REGION }}-docker.pkg.dev/${PROJECT_ID}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:latest
+            docker build -t "$IMAGE" .
 
       - name: Push Docker image to Artifact Registry
         run: |
