@@ -6,7 +6,7 @@ def term_and_condition():
     return [
         {
             "Durasi sewa maksimal 24 jam",
-            "Pengembalian max telat 30menit dengan syarat sudah di konfirmasi terlebih dahulu, overtime denda 5.000 rupiah per jam"
+            "Pengembalian max telat 30 menit dengan syarat sudah di konfirmasi terlebih dahulu, overtime denda 10.000 rupiah per jam"
         },
         {
             "Wajib meninggalkan identitas diri & nomor telepon aktif",
