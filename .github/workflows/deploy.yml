@@ -8,10 +8,9 @@ on:
     branches: [ main ]
 
 env:
-  # Replace these values in the repository secrets or set them here directly.
   REGION: asia-southeast2
-  REPO_NAME: jsr-chatbot
-  SERVICE_NAME: fastapi-chatbot
+  REPO_NAME: fastapi-repo          # Artifact Registry repository name
+  SERVICE_NAME: fastapi-chatbot    # Cloud Run service name
 
 jobs:
   deploy:
@@ -24,7 +23,7 @@ jobs:
       - name: Authenticate to Google Cloud using service account
         uses: google-github-actions/auth@v2
         with:
-          # Service account JSON should be stored in GitHub secret named GCP_SA_KEY
+          # JSON key stored as GitHub secret named GCP_SA_KEY
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up gcloud CLI
